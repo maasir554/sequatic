@@ -72,7 +72,7 @@ export const Navbar = () => {
             />
             <span
               className={cn(
-                "font-extrabold italic font-hero-heading text-blue-600 transition-all duration-300 ease-in-out",
+                "font-medium font-hero-heading text-blue-600 transition-all duration-300 ease-in-out",
                 scrolled ? "text-lg" : "text-xl"
               )}
             >
