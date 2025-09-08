@@ -1,6 +1,7 @@
 import {
   ArrowDown,
   BarChart3,
+  LogIn,
   BrainCircuit,
   Database,
   Play,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react"
 import { Code } from "bright"
 import { RainbowButton } from "@/components/magicui/rainbow-button"
+import { Button } from "@/components/ui/button"
 import { WavyBackground } from "./ui/wavy-background"
 import { Navbar } from "./Navbar"
 import { BentoGridFeatures } from "./BentoGridFeatures"
@@ -174,7 +176,7 @@ export const LandingPage = () => {
       <section id="features" className="py-20 lg:py-32 bg-gray-50/70">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <TextGenerateEffect words={"A Playground for Your Ideas"} className="text-3xl md:text-4xl lg:text-5xl font-hero-heading font-black text-blue-600 mb-4 sm:mb-6 md:mb-12"/>
+            <TextGenerateEffect words={"A Playground for Your Ideas"} className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600 mb-4 sm:mb-6 md:mb-12"/>
             <p className="mt-4 text-sm lg:text-lg text-gray-600 max-w-3xl mx-auto text-balance">
               Sequatic is more than just a SQL editor.<br/> {`It's`} an interactive environment
               designed to bring your data-driven ideas to life.
@@ -189,7 +191,7 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             {/* <h2 className="text-3xl md:text-4xl lg:text-5xl font-hero-heading font-black text-blue-600"> */}
-             <TextGenerateEffect words={"How It Works"} className="text-3xl md:text-4xl lg:text-5xl font-hero-heading font-black text-blue-600"/>
+             <TextGenerateEffect words={"How It Works"} className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600"/>
             {/* </h2> */}
             <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto text-balance">
               A glimpse into the architecture that powers Sequatic, enabling
@@ -203,6 +205,36 @@ export const LandingPage = () => {
             persistence and recovery, with an option to sync to our secure cloud
             backend. The Agentic AI interacts directly with the in-browser database to fulfill your natural language requests.
           </p>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-20 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <TextGenerateEffect
+            words="What are you waiting for?"
+            className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600 mb-6"
+          />
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto text-balance mb-12">
+            Start using Sequatic now. Experience the future of SQL and unlock
+            the power of your data.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <Link href="/signup">
+              <RainbowButton
+                size={"lg"}
+                variant={"hero"}
+                className="cursor-pointer font-semibold text-md px-8 py-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
+              >
+                Create an account
+              </RainbowButton>
+            </Link>
+            <Link href="/login">
+              <Button variant="ghost" className=" cursor-pointer text-lg px-8 py-4 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold flex items-center gap-2">
+                <LogIn className="w-5 h-5" /> Login
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
       <Footer />
@@ -223,7 +255,7 @@ const Footer = () => {
   ]
 
   return (
-    <footer className="bg-gray-950 text-gray-400 py-12 md:py-20">
+    <footer className="bg-gray-950 text-gray-400 py-12 md:py-20 min-h-screen">
       <div className="max-w-7xl mx-auto px-6">
         <div className="relative flex flex-col items-center justify-center mb-12">
           <Image
@@ -231,7 +263,7 @@ const Footer = () => {
             alt="Sequatic Logo"
             width={150}
             height={150}
-            className="mb-1 opacity-75"
+            className="mb-1 opacity-70"
           />
           <h2
             aria-hidden="true"

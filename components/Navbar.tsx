@@ -1,26 +1,91 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { motion, Variants } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 
+const mobileMenuVariants: Variants = {
+  open: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+      staggerChildren: 0.07,
+      delayChildren: 0.2,
+    },
+    pointerEvents: "auto" as const,
+  },
+  closed: {
+    y: "-100%",
+    opacity: 0,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+      when: "afterChildren",
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+    },
+    pointerEvents: "none" as const,
+  },
+}
+
+const mobileLinkVariants: Variants = {
+  open: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      y: { stiffness: 1000, velocity: -100 },
+    },
+  },
+  closed: {
+    y: 50,
+    opacity: 0,
+    transition: {
+      y: { stiffness: 1000 },
+    },
+  },
+}
+
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const lastScrollY = useRef(0)
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+      const currentScrollY = window.scrollY
+      const isAtBottom =
+        window.innerHeight + currentScrollY >=
+        document.documentElement.scrollHeight - 10
+
+      // Change background on scroll
+      setScrolled(currentScrollY > 20)
+
+      // Hide on scroll down, show on scroll up, and always hide at the bottom
+      if (isAtBottom) {
+        setIsVisible(false)
+      } else if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      lastScrollY.current = currentScrollY
     }
 
-    window.addEventListener("scroll", handleScroll)
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => {
       window.removeEventListener("scroll", handleScroll)
     }
-  }, [])
+  }, []) // Empty dependency array ensures this runs only on mount and unmount
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -48,9 +113,12 @@ export const Navbar = () => {
       <nav
         className={cn(
           "fixed top-0 left-0 right-0 z-30 transition-all duration-300 ease-in-out",
-          scrolled || isMenuOpen
+          (scrolled || isMenuOpen)
             ? "bg-white/80 backdrop-blur-xl shadow-sm"
-            : "bg-transparent"
+            : "bg-transparent",
+          isVisible || isMenuOpen
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0"
         )}
       >
         <div
@@ -72,7 +140,7 @@ export const Navbar = () => {
             />
             <span
               className={cn(
-                "font-medium font-hero-heading text-blue-600 transition-all duration-300 ease-in-out",
+                "font-black italic font-hero-heading text-blue-600 transition-all duration-300 ease-in-out",
                 scrolled ? "text-lg" : "text-xl"
               )}
             >
@@ -89,20 +157,25 @@ export const Navbar = () => {
                 rel={
                   link.target === "_blank" ? "noopener noreferrer" : undefined
                 }
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="relative group text-gray-700 hover:text-blue-600 transition-colors font-medium"
               >
                 {link.label}
+                <span className="absolute -bottom-0.5 left-0 block h-0.5 w-full origin-left scale-x-0 bg-blue-600 transition-transform duration-300 ease-in-out group-hover:scale-x-100" />
               </Link>
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" className="text-gray-700 hover:bg-gray-100">
-              Login
-            </Button>
-            <button className="font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-              Sign Up
-            </button>
+            <Link href="/login">
+              <Button variant="ghost" className="cursor-pointer text-gray-700 hover:bg-gray-100">
+                Login
+              </Button>
+            </Link>
+            <Link href={"/signup"}>
+              <Button className="cursor-pointer font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                Sign Up
+              </Button>
+            </Link>
           </div>
 
           <div className="md:hidden">
@@ -122,42 +195,44 @@ export const Navbar = () => {
       </nav>
 
       {/* Mobile Menu */}
-      <div
+      <motion.div
+        initial={false}
+        animate={isMenuOpen ? "open" : "closed"}
+        variants={mobileMenuVariants}
         className={cn(
-          "fixed inset-0 z-20 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg transition-all duration-300 ease-in-out md:hidden",
-          isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          "fixed inset-0 z-20 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg md:hidden"
         )}
       >
-        <div className="flex flex-col items-center gap-8">
+        <motion.div
+          variants={mobileMenuVariants}
+          className="flex flex-col items-center gap-8"
+        >
           {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              target={link.target}
-              rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
-              className="text-2xl font-semibold text-gray-800 hover:text-blue-600"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {link.label}
-            </Link>
+            <motion.div key={link.label} variants={mobileLinkVariants}>
+              <Link
+                href={link.href}
+                target={link.target}
+                rel={
+                  link.target === "_blank" ? "noopener noreferrer" : undefined
+                }
+                className="text-3xl font-semibold text-gray-800 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            </motion.div>
           ))}
-        </div>
-        <div className="absolute bottom-10 flex w-full flex-col items-center gap-4 px-6">
-          <Button
-            variant="ghost"
-            className="w-full text-xl py-6 text-gray-700 hover:bg-gray-100"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Login
-          </Button>
-          <button
-            className="w-full font-semibold text-xl px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Sign Up
-          </button>
-        </div>
-      </div>
+        </motion.div>
+        <motion.div
+          variants={mobileLinkVariants}
+          className="absolute bottom-10 flex w-full flex-col items-center gap-4 px-6"
+        >
+          <Button variant="ghost" className="w-full text-xl py-6" onClick={() => setIsMenuOpen(false)}>Login</Button>
+          <Link href={"/signup"}>
+            <button className="font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">Sign Up</button>
+          </Link>
+        </motion.div>
+      </motion.div>
     </>
   )
 }

@@ -2,7 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-import React, { HTMLAttributes, useCallback, useMemo } from "react";
+import React, {
+  HTMLAttributes,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 interface WarpBackgroundProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -78,10 +83,26 @@ export const WarpBackground: React.FC<WarpBackgroundProps> = ({
     return beams;
   }, [beamsPerSide, beamSize, beamDelayMax, beamDelayMin]);
 
-  const topBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const rightBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const bottomBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const leftBeams = useMemo(() => generateBeams(), [generateBeams]);
+  const [topBeams, setTopBeams] = useState<Array<{ x: number; delay: number }>>(
+    [],
+  );
+  const [rightBeams, setRightBeams] = useState<
+    Array<{ x: number; delay: number }>
+  >([]);
+  const [bottomBeams, setBottomBeams] = useState<
+    Array<{ x: number; delay: number }>
+  >([]);
+  const [leftBeams, setLeftBeams] = useState<
+    Array<{ x: number; delay: number }>
+  >([]);
+
+  useEffect(() => {
+    // Only generate beams on the client to prevent hydration mismatch
+    setTopBeams(generateBeams());
+    setRightBeams(generateBeams());
+    setBottomBeams(generateBeams());
+    setLeftBeams(generateBeams());
+  }, [generateBeams]);
 
   return (
     <div className={cn("relative rounded border p-20", className)} {...props}>
