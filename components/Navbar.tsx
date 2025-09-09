@@ -6,7 +6,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, User, LogOut } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 
 const mobileMenuVariants: Variants = {
   open: {
@@ -58,6 +59,11 @@ export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
+  const { data: session } = useSession()
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/landing' })
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -166,16 +172,42 @@ export const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost" className="cursor-pointer text-gray-700 hover:bg-gray-100">
-                Login
-              </Button>
-            </Link>
-            <Link href={"/signup"}>
-              <Button className="cursor-pointer font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                Sign Up
-              </Button>
-            </Link>
+            {session?.user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    {session.user.username || session.user.name || 'User'}
+                  </span>
+                </div>
+                <Link href="/">
+                  <Button variant="ghost" className="cursor-pointer text-gray-700 hover:bg-gray-100">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className="cursor-pointer text-gray-700 hover:bg-red-50 hover:text-red-600 flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="cursor-pointer text-gray-700 hover:bg-gray-100">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="cursor-pointer font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -227,10 +259,48 @@ export const Navbar = () => {
           variants={mobileLinkVariants}
           className="absolute bottom-10 flex w-full flex-col items-center gap-4 px-6"
         >
-          <Button variant="ghost" className="w-full text-xl py-6" onClick={() => setIsMenuOpen(false)}>Login</Button>
-          <Link href={"/signup"}>
-            <button className="font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">Sign Up</button>
-          </Link>
+          {session?.user ? (
+            <div className="flex flex-col items-center gap-4 w-full">
+              <div className="flex items-center gap-2 text-gray-700">
+                <User className="w-5 h-5" />
+                <span className="text-lg font-medium">
+                  {session.user.username || session.user.name || 'User'}
+                </span>
+              </div>
+              <Link href="/" className="w-full">
+                <Button variant="ghost" className="w-full text-xl py-6" onClick={() => setIsMenuOpen(false)}>
+                  Dashboard
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full text-xl py-6 text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Link href="/login" className="w-full">
+                <Button variant="ghost" className="w-full text-xl py-6" onClick={() => setIsMenuOpen(false)}>
+                  Login
+                </Button>
+              </Link>
+              <Link href="/signup" className="w-full">
+                <button
+                  className="font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors w-full text-xl py-6"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign Up
+                </button>
+              </Link>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </>

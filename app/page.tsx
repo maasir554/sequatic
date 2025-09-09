@@ -1,7 +1,15 @@
+import { auth } from "@/lib/auth";
 import { LandingPage } from "@/components/LandingPage";
+import { AppInterface } from "@/components/AppInterface";
 
-export default function Home() {
-  return (
-    <LandingPage />
-  );
+export default async function Home() {
+  const session = await auth();
+  
+  // If user is authenticated and onboarded, show app interface
+  if (session?.user?.onboarded) {
+    return <AppInterface />;
+  }
+  
+  // Otherwise show landing page
+  return <LandingPage />;
 }
