@@ -4,11 +4,22 @@ import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Database, Plus, Calendar, HardDrive, Play, Trash2 } from 'lucide-react';
+import { LogOut, User, Database, Plus, Calendar, HardDrive, Play, Trash2, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { indexedDBManager, DatabaseInfo } from '@/lib/indexeddb';
 import { sqliteManager } from '@/lib/sqlite';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export const DatabaseDashboard = () => {
   const { data: session } = useSession();
@@ -18,6 +29,12 @@ export const DatabaseDashboard = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newDatabaseName, setNewDatabaseName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [databaseToDelete, setDatabaseToDelete] = useState<{id: string, name: string} | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/landing' });
@@ -71,18 +88,38 @@ export const DatabaseDashboard = () => {
   };
 
   const deleteDatabase = async (databaseId: string, databaseName: string) => {
-    if (!confirm(`Are you sure you want to delete "${databaseName}"? This action cannot be undone.`)) {
+    setDatabaseToDelete({ id: databaseId, name: databaseName });
+    setDeleteDialogOpen(true);
+    setDeleteConfirmationText('');
+  };
+
+  const confirmDeleteDatabase = async () => {
+    if (!databaseToDelete || deleteConfirmationText !== databaseToDelete.name) {
       return;
     }
 
+    setIsDeleting(true);
     try {
-      await indexedDBManager.deleteDatabase(databaseId);
-      sqliteManager.closeDatabase(databaseId);
+      await indexedDBManager.deleteDatabase(databaseToDelete.id);
+      sqliteManager.closeDatabase(databaseToDelete.id);
       await loadDatabases();
+      
+      // Reset state
+      setDeleteDialogOpen(false);
+      setDatabaseToDelete(null);
+      setDeleteConfirmationText('');
     } catch (error) {
       console.error('Failed to delete database:', error);
       alert('Failed to delete database. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setDatabaseToDelete(null);
+    setDeleteConfirmationText('');
   };
 
   const formatFileSize = (bytes: number) => {
@@ -271,6 +308,50 @@ export const DatabaseDashboard = () => {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Database
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the database{' '}
+              <span className="font-semibold text-gray-900">&ldquo;{databaseToDelete?.name}&rdquo;</span>{' '}
+              and all of its data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="py-4">
+            <label htmlFor="delete-confirmation" className="block text-sm font-medium text-gray-700 mb-2">
+              To confirm, type the database name: <span className="font-semibold">{databaseToDelete?.name}</span>
+            </label>
+            <input
+              id="delete-confirmation"
+              type="text"
+              value={deleteConfirmationText}
+              onChange={(e) => setDeleteConfirmationText(e.target.value)}
+              placeholder="Type database name here..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteDatabase}
+              disabled={deleteConfirmationText !== databaseToDelete?.name || isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Database'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

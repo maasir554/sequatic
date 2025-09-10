@@ -46,8 +46,8 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
   const [viewMode, setViewMode] = useState<'query' | 'table'>(() => 
     (searchParams.get('view') as 'query' | 'table') || 'query'
   );
-  const [editorTheme, setEditorTheme] = useState<'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark'>(() =>
-    (searchParams.get('theme') as 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark') || 'github-dark'
+  const [editorTheme, setEditorTheme] = useState<'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark' | 'sequatic-pro' | 'sequatic-pro-dark'>(() =>
+    (searchParams.get('theme') as 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark' | 'sequatic-pro' | 'sequatic-pro-dark') || 'sequatic-pro'
   );
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -62,7 +62,7 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
     query?: string;
     table?: string | null;
     view?: 'query' | 'table';
-    theme?: 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark';
+    theme?: 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark' | 'sequatic-pro' | 'sequatic-pro-dark';
   }) => {
     const params = new URLSearchParams(searchParams);
     
@@ -125,7 +125,7 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
     updateURL({ view: mode });
   }, [updateURL]);
 
-  const setEditorThemeWithURL = useCallback((theme: 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark') => {
+  const setEditorThemeWithURL = useCallback((theme: 'vs-light' | 'vs-dark' | 'hc-black' | 'github-dark' | 'sequatic-pro' | 'sequatic-pro-dark') => {
     setEditorTheme(theme);
     updateURL({ theme });
   }, [updateURL]);
@@ -202,43 +202,12 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
     executeQueryRef.current = executeQuery;
   }, [executeQuery]);
 
-  const insertSampleQuery = (queryType: string) => {
-    let sampleQuery = '';
-    
-    switch (queryType) {
-      case 'create_table':
-        sampleQuery = `CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);`;
-        break;
-      case 'insert_data':
-        sampleQuery = `INSERT INTO users (name, email) VALUES 
-    ('John Doe', 'john@example.com'),
-    ('Jane Smith', 'jane@example.com'),
-    ('Bob Johnson', 'bob@example.com');`;
-        break;
-      case 'select_data':
-        sampleQuery = `SELECT * FROM users 
-WHERE created_at >= date('now', '-7 days') 
-ORDER BY created_at DESC;`;
-        break;
-      case 'update_data':
-        sampleQuery = `UPDATE users 
-SET email = 'newemail@example.com' 
-WHERE name = 'John Doe';`;
-        break;
-      case 'delete_data':
-        sampleQuery = `DELETE FROM users 
-WHERE created_at < date('now', '-30 days');`;
-        break;
-    }
-    
-    setQuery(sampleQuery);
+  const insertSampleQuery = useCallback((query: string) => {
+    setQuery(query);
+    setViewMode('query'); // Update local state immediately
+    updateURL({ query: query, view: 'query' });
     editorRef.current?.focus();
-  };
+  }, [updateURL]);
 
   const exportDatabase = () => {
     try {

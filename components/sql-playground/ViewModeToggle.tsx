@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Code, Eye } from 'lucide-react';
 
 interface ViewModeToggleProps {
@@ -29,31 +28,39 @@ export const ViewModeToggle = ({
   };
 
   return (
-    <div className="flex items-center gap-2 mb-6">
-      <Button
-        variant={viewMode === 'query' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => onViewModeChange('query')}
-        className="flex items-center gap-2"
-      >
-        <Code className="w-4 h-4" />
-        Query Editor
-      </Button>
-      <Button
-        variant={viewMode === 'table' ? 'default' : 'outline'}
-        size="sm"
-        onClick={handleTableViewClick}
-        disabled={!selectedTable && !tableDataExists}
-        className="flex items-center gap-2"
-      >
-        <Eye className="w-4 h-4" />
-        Table View
-        {tableDataExists && (
-          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs ml-1">
-            {totalRows} rows
-          </span>
-        )}
-      </Button>
+    <div className="flex items-center">
+      {/* Modern Tab Design */}
+      <div className="flex">
+        <button
+          onClick={() => onViewModeChange('query')}
+          className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-all duration-200 ${
+            viewMode === 'query'
+              ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50/50'
+          }`}
+        >
+          <Code className="w-4 h-4" />
+          Query Editor
+        </button>
+        
+        <button
+          onClick={handleTableViewClick}
+          disabled={!selectedTable && !tableDataExists}
+          className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+            viewMode === 'table'
+              ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50/50'
+          }`}
+        >
+          <Eye className="w-4 h-4" />
+          Table View
+          {tableDataExists && (
+            <span className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-xs border border-blue-200/50">
+              {totalRows} rows
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 };
