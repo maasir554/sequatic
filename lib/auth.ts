@@ -22,6 +22,7 @@ type AuthUserWithOnboarded = AuthUser & {
 export const authConfig: NextAuthConfig = {
   debug: process.env.NODE_ENV === 'development',
   adapter: PrismaAdapter(prisma),
+  trustHost: true, // Essential for Vercel deployment
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -98,6 +99,33 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      try {
+        // Ensure user exists and is properly created
+        if (account && user.email) {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email }
+          });
+          
+          if (!existingUser) {
+            // Create user if doesn't exist to prevent orphaned accounts
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                onboarded: false,
+              }
+            });
+          }
+        }
+        return true;
+      } catch (error) {
+        console.error("Error during sign in:", error);
+        // Allow sign in to continue, but log the error
+        return true;
+      }
+    },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
@@ -114,16 +142,35 @@ export const authConfig: NextAuthConfig = {
         token.username = extendedUser.username || null;
       }
 
+      // Always fetch fresh user data to ensure synchronization
+      if (token.sub) {
+        try {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.sub }
+          }) as ExtendedUser | null;
+          
+          if (freshUser) {
+            token.username = freshUser.username;
+            token.onboarded = freshUser.onboarded;
+          }
+        } catch (error) {
+          console.error('Error fetching user data in JWT callback:', error);
+        }
+      }
+
       // Handle session updates (e.g., after onboarding)
-      if (trigger === "update" && session?.user) {
-        // Fetch fresh user data from database
-        const freshUser = await prisma.user.findUnique({
-          where: { id: token.sub! }
-        }) as ExtendedUser | null;
-        
-        if (freshUser) {
-          token.username = freshUser.username;
-          token.onboarded = freshUser.onboarded;
+      if (trigger === "update" && session?.user && token.sub) {
+        try {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.sub }
+          }) as ExtendedUser | null;
+          
+          if (freshUser) {
+            token.username = freshUser.username;
+            token.onboarded = freshUser.onboarded;
+          }
+        } catch (error) {
+          console.error('Error updating user data in JWT callback:', error);
         }
       }
 
@@ -132,7 +179,8 @@ export const authConfig: NextAuthConfig = {
   },
   pages: {
     signIn: "/login",
-    newUser: "/onboarding"
+    newUser: "/onboarding",
+    error: "/login" // Redirect errors to login page
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

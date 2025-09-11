@@ -8,9 +8,6 @@ const publicRoutes = ['/', '/landing', '/login', '/signup'];
 // Routes that are only accessible to unauthenticated users
 const authRoutes = ['/login', '/signup'];
 
-// API routes that don't require authentication
-const publicApiRoutes = ['/api/auth', '/api/auth/register'];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
@@ -18,16 +15,24 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
-    pathname.includes('.')
+    pathname.includes('.') ||
+    pathname.startsWith('/api/auth') // Skip all auth API routes
   ) {
     return NextResponse.next();
   }
   
-  // Get the token from the request
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  // Get the token from the request with proper error handling
+  let token;
+  try {
+    token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+      // Let NextAuth handle cookie name automatically
+    });
+  } catch (error) {
+    console.error('Error getting token in middleware:', error);
+    token = null;
+  }
   
   // Check if the user is authenticated
   const isAuthenticated = !!token;
@@ -35,8 +40,8 @@ export async function middleware(request: NextRequest) {
   // Check if the user has completed onboarding
   const isOnboarded = token?.onboarded === true;
   
-  // Allow public API routes
-  if (publicApiRoutes.some(route => pathname.startsWith(route))) {
+  // Allow public API routes (except auth routes which are handled above)
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
   

@@ -88,8 +88,8 @@ export default function OnboardingPage() {
         },
       });
 
-      router.push('/');
-      router.refresh();
+      // Force a complete refresh to ensure middleware picks up the changes
+      window.location.href = '/';
     } catch {
       setError('Something went wrong. Please try again.');
       setIsLoading(false);
