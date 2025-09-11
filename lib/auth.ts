@@ -21,12 +21,12 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true, // This is key!
+      allowDangerousEmailAccountLinking: true,
     }),
     Github({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true, // This is key!
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "credentials",
@@ -78,10 +78,11 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      console.log('SignIn callback:', { 
+      console.log('🚀 NextAuth SignIn callback triggered:', { 
         userEmail: user.email, 
         provider: account?.provider,
-        userId: user.id
+        userId: user.id,
+        timestamp: new Date().toISOString()
       });
       
       // Always allow sign in - let PrismaAdapter handle user creation
@@ -96,10 +97,19 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
     async jwt({ token, user, trigger, session }: { token: JWT; user: AuthUser | null; trigger?: string; session?: Session }) {
+      console.log('🔑 NextAuth JWT callback triggered:', {
+        hasUser: !!user,
+        trigger,
+        tokenEmail: token.email,
+        timestamp: new Date().toISOString()
+      });
+      
       if (user) {
         // For new users, set default values
         token.onboarded = false; // New users are never onboarded
         token.username = null;
+        
+        console.log('👤 Setting up new user token:', { userEmail: user.email });
         
         // Try to get the actual user data from database
         try {
@@ -111,9 +121,12 @@ export const authConfig: NextAuthConfig = {
           if (dbUser) {
             token.onboarded = dbUser.onboarded;
             token.username = dbUser.username;
+            console.log('📊 Found user in DB:', { onboarded: dbUser.onboarded, username: dbUser.username });
+          } else {
+            console.log('⚠️ User not found in DB, using defaults');
           }
         } catch (error) {
-          console.error('Error fetching user in JWT callback:', error);
+          console.error('❌ Error fetching user in JWT callback:', error);
         }
       }
 
@@ -161,7 +174,11 @@ export const authConfig: NextAuthConfig = {
   },
   events: {
     async createUser({ user }) {
-      console.log('CreateUser event:', { userEmail: user.email, userId: user.id });
+      console.log('🎉 NextAuth CreateUser event triggered:', { 
+        userEmail: user.email, 
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
       
       // Set onboarded to false for new users
       try {
@@ -169,10 +186,18 @@ export const authConfig: NextAuthConfig = {
           where: { id: user.id },
           data: { onboarded: false }
         });
-        console.log('Set new user onboarded to false');
+        console.log('✅ Set new user onboarded to false');
       } catch (error) {
-        console.error('Error in createUser event:', error);
+        console.error('❌ Error in createUser event:', error);
       }
+    },
+    async signIn({ user, account, isNewUser }) {
+      console.log('📝 NextAuth SignIn event:', {
+        userEmail: user.email,
+        provider: account?.provider,
+        isNewUser,
+        timestamp: new Date().toISOString()
+      });
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

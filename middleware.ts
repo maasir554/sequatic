@@ -33,15 +33,18 @@ export async function middleware(request: NextRequest) {
     token = null;
   }
   
-  // Debug logging for production
-  console.log('Middleware Debug:', {
-    pathname,
-    hasToken: !!token,
-    userEmail: token?.email,
-    onboarded: token?.onboarded,
-    isAuthenticated: !!token,
-    isOnboarded: token?.onboarded === true
-  });
+  // Debug logging only for important routes
+  if (pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/onboarding') || pathname === '/') {
+    console.log('🛡️ Middleware Debug:', {
+      pathname,
+      hasToken: !!token,
+      userEmail: token?.email,
+      onboarded: token?.onboarded,
+      isAuthenticated: !!token,
+      isOnboarded: token?.onboarded === true,
+      timestamp: new Date().toISOString()
+    });
+  }
   
   // Check if the user is authenticated
   const isAuthenticated = !!token;
