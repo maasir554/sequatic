@@ -137,7 +137,7 @@ export const SampleQueriesSidebar = ({ selectedTable, tableSchema, onInsertSampl
 
   return (
     <Collapsible open={isQueriesOpen} onOpenChange={setIsQueriesOpen}>
-      <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-xl shadow-lg border border-gray-200/60 overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-blue-200/50">
+      <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-xl shadow-lg border border-gray-200/60 overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-blue-200/50 mb-4">
         <CollapsibleTrigger asChild>
           <h3 className="font-bold text-slate-800 text-sm flex items-center gap-3 cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-yellow-50/30 p-4 w-full transition-all duration-200 active:scale-[0.98] group">
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/10 to-yellow-500/10 group-hover:from-blue-500/20 group-hover:to-yellow-500/20 transition-colors duration-200">

@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, Database, Clock, TrendingUp, BarChart3, Chevr
 import { QueryResult } from '@/lib/sqlite';
 import { useEffect, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { BsInfoCircleFill } from "react-icons/bs";
 
 interface QueryResultsDisplayProps {
   results: QueryResult[];
@@ -110,7 +111,7 @@ export const QueryResultsDisplay = ({ results, error }: QueryResultsDisplayProps
               </div>
             </div>
             <p className="mt-6 text-slate-600 font-medium text-lg">Execute a query to see results here</p>
-            <p className="mt-2 text-slate-500 text-sm">Your query results will appear with beautiful animations</p>
+            <p className="mt-2 text-slate-500 text-sm">Your query results will appear here.</p>
           </div>
         </div>
       );
@@ -225,7 +226,8 @@ export const QueryResultsDisplay = ({ results, error }: QueryResultsDisplayProps
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-500/10 to-blue-500/10 border border-green-500/20">
-                <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-blue-500 rounded-sm"></div>
+                {/* <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-blue-500 rounded-sm"></div> */}
+                <BsInfoCircleFill className='w-6 h-6 text-green-600' />
               </div>
               <h3 className="text-lg font-bold text-slate-900 tracking-tight">Query Results</h3>
               {results.length > 0 && (
