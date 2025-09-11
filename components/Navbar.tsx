@@ -6,8 +6,25 @@ import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Menu, X, User, LogOut } from "lucide-react"
+import { Menu, X, User, ChevronDown } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const mobileMenuVariants: Variants = {
   open: {
@@ -58,11 +75,13 @@ export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
   const lastScrollY = useRef(0)
   const { data: session } = useSession()
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/landing' })
+    setIsLogoutDialogOpen(false)
   }
 
   useEffect(() => {
@@ -174,25 +193,53 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {session?.user ? (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {session.user.username || session.user.name || 'User'}
-                  </span>
-                </div>
                 <Link href="/">
                   <Button variant="ghost" className="cursor-pointer text-gray-700 hover:bg-gray-100">
                     Dashboard
                   </Button>
                 </Link>
-                <Button 
-                  variant="ghost" 
-                  onClick={handleLogout}
-                  className="cursor-pointer text-gray-700 hover:bg-red-50 hover:text-red-600 flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </Button>
+                
+                {/* Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        {session.user.username || session.user.name || 'User'}
+                      </span>
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5 text-sm text-gray-600">
+                      <div className="font-medium text-gray-900">{session.user.username || session.user.name || 'User'}</div>
+                      <div className="text-xs text-gray-500">Signed in</div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setIsLogoutDialogOpen(true)}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <>
@@ -276,12 +323,24 @@ export const Navbar = () => {
                 variant="ghost" 
                 onClick={() => {
                   setIsMenuOpen(false);
-                  handleLogout();
+                  setIsLogoutDialogOpen(true);
                 }}
                 className="w-full text-xl py-6 text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"
               >
-                <LogOut className="w-5 h-5" />
-                Logout
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Sign out
               </Button>
             </div>
           ) : (
@@ -292,17 +351,39 @@ export const Navbar = () => {
                 </Button>
               </Link>
               <Link href="/signup" className="w-full">
-                <button
-                  className="font-semibold px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors w-full text-xl py-6"
+                <Button
+                  className="font-semibold px-6 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors w-full text-xl py-6"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign Up
-                </button>
+                </Button>
               </Link>
             </>
           )}
         </motion.div>
       </motion.div>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out of Sequatic?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out of your account and redirected to the landing page. 
+              Any unsaved work will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Sign out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

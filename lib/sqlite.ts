@@ -22,6 +22,11 @@ class SQLiteManager {
   async initialize(): Promise<void> {
     if (this.SQL) return;
 
+    // Only initialize on client side
+    if (typeof window === 'undefined') {
+      throw new Error('SQLite manager should only be used on the client side');
+    }
+
     try {
       // Use local files served from public directory
       this.SQL = await initSqlJs({

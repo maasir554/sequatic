@@ -56,9 +56,8 @@ export const TableDataView = ({
   // Create new table instance with extended columns
   const extendedTable = useReactTable({
     columns: extendedColumns,
-    data: tableRows,
-    pageCount: Math.ceil((tableRows?.length || 0) / 10),
-    getRowId: (row) => row._id as string,
+    data: tableRows || [],
+    getRowId: (row, index) => `row-${index}`,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -66,11 +65,18 @@ export const TableDataView = ({
     manualPagination: false,
     manualSorting: false,
     manualFiltering: false,
+    initialState: {
+      pagination: {
+        pageSize: 5,
+        pageIndex: 0,
+      },
+    },
+    debugTable: false,
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Table className="w-5 h-5" />
           {selectedTable} Data
@@ -81,23 +87,28 @@ export const TableDataView = ({
       </div>
       
       {tableRows.length > 0 ? (
-        <DataGrid
-          table={extendedTable}
-          recordCount={tableRows.length}
-          tableLayout={{
-            width: 'auto',
-          }}
-        >
-          <div className="w-full space-y-2.5">
-            <DataGridContainer>
-              <ScrollArea>
-                <DataGridTable />
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </DataGridContainer>
-            <DataGridPagination />
-          </div>
-        </DataGrid>
+        <div className="flex-1 flex flex-col min-h-0">
+          <DataGrid
+            table={extendedTable}
+            recordCount={tableRows?.length || 0}
+            tableLayout={{
+              width: 'auto',
+            }}
+          >
+            <div className="flex flex-col h-full space-y-4">
+              <DataGridContainer className="flex-1 min-h-0 max-h-[60vh] overflow-hidden border rounded-md">
+                <ScrollArea className="h-full w-full">
+                  <DataGridTable />
+                  <ScrollBar orientation="horizontal" />
+                  <ScrollBar orientation="vertical" />
+                </ScrollArea>
+              </DataGridContainer>
+              <div className="flex justify-center flex-shrink-0 pt-4 pb-2 border-t border-gray-100 mt-2">
+                <DataGridPagination />
+              </div>
+            </div>
+          </DataGrid>
+        </div>
       ) : (
         <div className="text-center py-12 text-gray-500">
           <Table className="w-12 h-12 mx-auto mb-4 text-gray-300" />

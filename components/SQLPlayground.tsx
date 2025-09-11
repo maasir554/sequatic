@@ -13,6 +13,7 @@ import { QueryResultsDisplay } from './sql-playground/QueryResultsDisplay';
 import { TableDataView } from './sql-playground/TableDataView';
 import { Button } from '@/components/ui/button';
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface SQLPlaygroundProps {
   databaseId: string;
@@ -255,12 +256,26 @@ export const SQLPlayground = ({ databaseId, databaseName, onBackToDashboard }: S
                 ? '' // No height restriction for collapsed mode
                 : 'h-[calc(100vh-10rem)]' // Fixed height for new flex layout - adjusted for smaller header
             }`}>
-              <AIChatInterface
-                isCollapsed={isAIChatCollapsed}
-                onQueryGenerated={handleAIQueryGenerated}
-                selectedTable={selectedTable || undefined}
-                tableSchema={tableSchema}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div className="p-4 text-center">
+                    <p className="text-red-600 mb-2">⚠️ AI Chat Error</p>
+                    <p className="text-sm text-gray-600">
+                      There was an issue loading the AI chat. Please refresh the page.
+                    </p>
+                  </div>
+                }
+              >
+                <AIChatInterface
+                  isCollapsed={isAIChatCollapsed}
+                  onQueryGenerated={handleAIQueryGenerated}
+                  selectedTable={selectedTable || undefined}
+                  tableSchema={tableSchema}
+                  databaseId={databaseId}
+                  tables={tables}
+                  recentQueries={[query].filter(Boolean)} // Pass current query as recent
+                />
+              </ErrorBoundary>
             </div>
           </div>
         </div>

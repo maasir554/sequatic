@@ -26,13 +26,33 @@ const nextConfig: NextConfig = {
       type: 'webassembly/async',
     });
 
-    // Ensure proper handling of sql.js
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'sql.js': 'sql.js/dist/sql-wasm.js',
-    };
+    // Ensure proper handling of sql.js - exclude from server bundle
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('sql.js');
+    } else {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'sql.js': 'sql.js/dist/sql-wasm.js',
+      };
+    }
 
     return config;
+  },
+  
+  // Ensure static assets are properly served
+  async headers() {
+    return [
+      {
+        source: '/sql-wasm.wasm',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/wasm',
+          },
+        ],
+      },
+    ];
   },
 };
 

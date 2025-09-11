@@ -21,7 +21,8 @@ import {
   Eye,
   Zap,
   Sparkles,
-  Clock
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -64,8 +65,12 @@ export const DatabaseDashboard = () => {
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Logout confirmation state
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/landing' });
+    setIsLogoutDialogOpen(false);
   };
 
   const loadDatabases = async () => {
@@ -231,15 +236,34 @@ export const DatabaseDashboard = () => {
                 <span className="font-medium">Welcome, {session?.user?.username || session?.user?.name || 'User'}</span>
               </div>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-300"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline max-w-32 truncate">{session?.user?.username || session?.user?.name || 'User'}</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-gray-200/50 bg-white/95 backdrop-blur-sm">
+                  <div className="px-2 py-1.5 text-sm text-gray-600">
+                    <div className="font-medium text-gray-900">{session?.user?.username || session?.user?.name || 'User'}</div>
+                    <div className="text-xs text-gray-500">Signed in</div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setIsLogoutDialogOpen(true)}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer rounded-lg"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -254,7 +278,7 @@ export const DatabaseDashboard = () => {
               Your Databases
             </h1>
             <p className="text-gray-600 text-lg">
-              Manage your SQLite databases with modern tools and analytics
+              Manage your SQLite databases along with AI
             </p>
             <div className="flex items-center gap-4 mt-4">
               <Badge className="bg-blue-50 text-blue-700 border-blue-200">
@@ -523,6 +547,28 @@ export const DatabaseDashboard = () => {
           </div>
         )}
       </main>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+        <AlertDialogContent className="rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out of Sequatic?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out of your account and redirected to the landing page. 
+              Any unsaved work will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 rounded-xl"
+            >
+              Sign out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
