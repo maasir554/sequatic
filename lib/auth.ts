@@ -21,28 +21,10 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-          onboarded: false,
-        };
-      },
     }),
     Github({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      profile(profile) {
-        return {
-          id: profile.id.toString(),
-          name: profile.name || profile.login,
-          email: profile.email,
-          image: profile.avatar_url,
-          onboarded: false,
-        };
-      },
     }),
     Credentials({
       name: "credentials",
@@ -93,10 +75,31 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn() {
-      // Let NextAuth's adapter handle user creation automatically
-      // We don't need to manually create users here
-      return true;
+    async signIn({ user, account }) {
+      try {
+        // When a user signs in with OAuth, ensure onboarded is set to false
+        if (account?.provider && (account.provider === 'google' || account.provider === 'github')) {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
+          
+          if (!existingUser) {
+            // This is a new user, create them with onboarded: false
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name,
+                image: user.image,
+                onboarded: false,
+              }
+            });
+          }
+        }
+        return true;
+      } catch (error) {
+        console.error("Error in signIn callback:", error);
+        return true; // Still allow sign in
+      }
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token.sub) {
@@ -108,17 +111,31 @@ export const authConfig: NextAuthConfig = {
     },
     async jwt({ token, user, trigger, session }: { token: JWT; user: AuthUser | null; trigger?: string; session?: Session }) {
       if (user) {
-        // Set initial token properties from user data
-        const extendedUser = user as AuthUserWithOnboarded;
-        token.onboarded = extendedUser.onboarded || false;
-        token.username = extendedUser.username || null;
+        // For new users, set default values
+        token.onboarded = false; // New users are never onboarded
+        token.username = null;
+        
+        // Try to get the actual user data from database
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+            select: { onboarded: true, username: true }
+          });
+          
+          if (dbUser) {
+            token.onboarded = dbUser.onboarded;
+            token.username = dbUser.username;
+          }
+        } catch (error) {
+          console.error('Error fetching user in JWT callback:', error);
+        }
       }
 
       // Always fetch fresh user data to ensure synchronization
-      if (token.sub) {
+      if (token.sub && token.email) {
         try {
           const freshUser = await prisma.user.findUnique({
-            where: { id: token.sub },
+            where: { email: token.email as string },
             select: { onboarded: true, username: true }
           });
           
@@ -127,15 +144,15 @@ export const authConfig: NextAuthConfig = {
             token.onboarded = freshUser.onboarded;
           }
         } catch (error) {
-          console.error('Error fetching user data in JWT callback:', error);
+          console.error('Error fetching fresh user data in JWT callback:', error);
         }
       }
 
       // Handle session updates (e.g., after onboarding)
-      if (trigger === "update" && session?.user && token.sub) {
+      if (trigger === "update" && session?.user && token.email) {
         try {
           const freshUser = await prisma.user.findUnique({
-            where: { id: token.sub },
+            where: { email: token.email as string },
             select: { onboarded: true, username: true }
           });
           
