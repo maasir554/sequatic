@@ -85,7 +85,33 @@ export const authConfig: NextAuthConfig = {
         timestamp: new Date().toISOString()
       });
       
-      // Always allow sign in - let PrismaAdapter handle user creation
+      try {
+        // For OAuth providers, ensure user exists in database
+        if (account?.provider === 'google' || account?.provider === 'github') {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
+
+          if (!existingUser) {
+            console.log('🎉 Creating new user in database:', user.email);
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || '',
+                image: user.image || null,
+                onboarded: false,
+              },
+            });
+            console.log('✅ User created successfully');
+          } else {
+            console.log('👤 User already exists in database');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error in signIn callback:', error);
+        return false;
+      }
+      
       return true;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
