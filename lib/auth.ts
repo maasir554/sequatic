@@ -101,14 +101,40 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async signIn({ user, account }) {
       try {
-        // Ensure user exists and is properly created
+        // Always allow sign in and handle account linking
         if (account && user.email) {
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email }
+            where: { email: user.email },
+            include: { accounts: true }
           });
           
-          if (!existingUser) {
-            // Create user if doesn't exist to prevent orphaned accounts
+          if (existingUser) {
+            // Check if this provider account is already linked
+            const existingAccount = existingUser.accounts.find(
+              acc => acc.provider === account.provider && acc.providerAccountId === account.providerAccountId
+            );
+            
+            if (!existingAccount) {
+              // Link the account to the existing user
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  refresh_token: account.refresh_token,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                  session_state: account.session_state as string,
+                }
+              });
+              console.log(`Linked ${account.provider} account to existing user ${existingUser.email}`);
+            }
+          } else {
+            // Create new user if doesn't exist
             await prisma.user.create({
               data: {
                 email: user.email,
@@ -117,12 +143,13 @@ export const authConfig: NextAuthConfig = {
                 onboarded: false,
               }
             });
+            console.log(`Created new user for ${user.email}`);
           }
         }
         return true;
       } catch (error) {
         console.error("Error during sign in:", error);
-        // Allow sign in to continue, but log the error
+        // Still allow sign in, let NextAuth handle it
         return true;
       }
     },
