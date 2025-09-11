@@ -34,6 +34,17 @@ export async function middleware(request: NextRequest) {
     token = null;
   }
   
+  // Debug logging for production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Middleware Debug:', {
+      pathname,
+      hasToken: !!token,
+      userEmail: token?.email,
+      onboarded: token?.onboarded,
+      userAgent: request.headers.get('user-agent')?.slice(0, 50)
+    });
+  }
+  
   // Check if the user is authenticated
   const isAuthenticated = !!token;
   
