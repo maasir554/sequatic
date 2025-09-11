@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthConfig, Session, User as AuthUser } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
@@ -15,18 +14,16 @@ type AuthUserWithOnboarded = AuthUser & {
 
 export const authConfig: NextAuthConfig = {
   debug: true, // Enable debug in production temporarily
-  adapter: PrismaAdapter(prisma),
+  // adapter: PrismaAdapter(prisma), // Remove adapter - handle manually
   trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
     }),
     Github({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "credentials",
