@@ -48,18 +48,22 @@ interface AIChatInterfaceProps {
   selectedTable?: string;
   tableSchema?: TableSchema[];
   databaseId: string;
-  tables: Array<{ name: string }>;
+  databaseName: string;
+  tables?: Array<{ name: string }>;
   recentQueries?: string[];
+  onTableDataRefresh?: (tableName: string) => void; // New callback for refreshing table data
 }
 
 export const AIChatInterface = ({ 
   isCollapsed, 
   onQueryGenerated, 
   selectedTable, 
-  tableSchema,
+  tableSchema, 
   databaseId,
-  tables,
-  recentQueries 
+  databaseName,
+  tables = [],
+  recentQueries = [],
+  onTableDataRefresh
 }: AIChatInterfaceProps) => {
   // tableSchema will be used for advanced AI analysis features in future updates
   const [messages, setMessages] = useState<Message[]>([
@@ -422,7 +426,7 @@ Please try again or rephrase your question.`,
         console.log('Extracted from query property:', sqlQuery);
       }
       
-      // Method 3: Look for complete SELECT statements in the text
+      // Method 3: Look for complete SQL statements in the text
       if (!sqlQuery) {
         const lines = queryResponse.content.split('\n');
         let foundSelectLine = '';
@@ -430,24 +434,36 @@ Please try again or rephrase your question.`,
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           
-          // Look for the start of a SELECT statement
+          // Look for the start of any SQL statement
           if (line.toLowerCase().startsWith('select ') || 
+              line.toLowerCase().startsWith('delete ') ||
+              line.toLowerCase().startsWith('insert ') ||
+              line.toLowerCase().startsWith('update ') ||
               line.toLowerCase().includes('select count(') ||
-              line.toLowerCase().includes('select *')) {
+              line.toLowerCase().includes('delete from ') ||
+              line.toLowerCase().includes('insert into ') ||
+              line.toLowerCase().includes('update ')) {
             foundSelectLine = line;
             
-            // Check if this looks like a complete query (has FROM)
-            if (line.toLowerCase().includes(' from ')) {
+            // Check if this looks like a complete query
+            const isCompleteQuery = line.toLowerCase().includes(' from ') || 
+                                   line.toLowerCase().includes(' into ') ||
+                                   line.toLowerCase().includes(' set ') ||
+                                   line.endsWith(';');
+            
+            if (isCompleteQuery) {
               sqlQuery = line;
               break;
             } else {
               // Multi-line query - collect following lines
               for (let j = i + 1; j < lines.length; j++) {
                 const nextLine = lines[j].trim();
-                if (nextLine && !nextLine.startsWith('//') && !nextLine.startsWith('*')) {
+                if (nextLine && !nextLine.startsWith('//') && !nextLine.startsWith('*') && !nextLine.toLowerCase().startsWith('explanation')) {
                   foundSelectLine += ' ' + nextLine;
                   if (nextLine.toLowerCase().includes(' from ') || 
                       nextLine.toLowerCase().includes(' where ') ||
+                      nextLine.toLowerCase().includes(' values ') ||
+                      nextLine.toLowerCase().includes(' set ') ||
                       nextLine.endsWith(';')) {
                     break;
                   }
@@ -464,21 +480,38 @@ Please try again or rephrase your question.`,
         }
       }
       
-      // Method 4: Advanced pattern matching for complex queries
+      // Method 4: Advanced pattern matching for all SQL operations
       if (!sqlQuery) {
-        // Look for patterns like "SELECT ... FROM ... WHERE ..."
-        const advancedPattern = /SELECT\s+[^;]+?FROM\s+[^;]+?(?:WHERE\s+[^;]+?)?(?:;|$)/gi;
-        const advancedMatch = queryResponse.content.match(advancedPattern);
-        if (advancedMatch && advancedMatch[0]) {
-          sqlQuery = advancedMatch[0].trim().replace(/;$/, '');
-          console.log('Extracted using advanced pattern:', sqlQuery);
+        // Patterns for different SQL operations
+        const patterns = [
+          // SELECT queries
+          /SELECT\s+[^;]+?FROM\s+[^;]+?(?:WHERE\s+[^;]+?)?(?:;|$)/gi,
+          // DELETE queries  
+          /DELETE\s+FROM\s+[^;]+?(?:WHERE\s+[^;]+?)?(?:;|$)/gi,
+          // INSERT queries
+          /INSERT\s+INTO\s+[^;]+?(?:VALUES\s*\([^;]+?\)|\([^;]+?\)\s+VALUES\s*\([^;]+?\)|SELECT\s+[^;]+?)?(?:;|$)/gi,
+          // UPDATE queries
+          /UPDATE\s+[^;]+?SET\s+[^;]+?(?:WHERE\s+[^;]+?)?(?:;|$)/gi
+        ];
+        
+        for (const pattern of patterns) {
+          const match = queryResponse.content.match(pattern);
+          if (match && match[0]) {
+            sqlQuery = match[0].trim().replace(/;$/, '');
+            console.log('Extracted using advanced pattern:', sqlQuery);
+            break;
+          }
         }
       }
 
       // Validate that we have a complete SQL query
       const isValidSQL = sqlQuery && 
-                        sqlQuery.toLowerCase().includes('select') && 
-                        sqlQuery.toLowerCase().includes('from') &&
+                        (
+                          (sqlQuery.toLowerCase().includes('select') && sqlQuery.toLowerCase().includes('from')) ||
+                          (sqlQuery.toLowerCase().includes('delete') && sqlQuery.toLowerCase().includes('from')) ||
+                          (sqlQuery.toLowerCase().includes('insert') && sqlQuery.toLowerCase().includes('into')) ||
+                          (sqlQuery.toLowerCase().includes('update') && sqlQuery.toLowerCase().includes('set'))
+                        ) &&
                         sqlQuery.length > 10; // Basic length check
 
       if (isValidSQL) {
@@ -501,6 +534,25 @@ Please try again or rephrase your question.`,
 
         const { sqliteManager } = await import('@/lib/sqlite');
         const queryResults = await sqliteManager.executeQuery(databaseId, sqlQuery!);
+
+        // Save database changes to IndexedDB for persistence
+        const { indexedDBManager } = await import('@/lib/indexeddb');
+        const dbData = sqliteManager.exportDatabase(databaseId);
+        await indexedDBManager.saveDatabase(databaseId, databaseName, dbData);
+
+        // Check if this is a modifying query and refresh table data if needed
+        const modifyingKeywords = ['INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER'];
+        const isModifyingQuery = modifyingKeywords.some(keyword => 
+          sqlQuery!.toUpperCase().includes(keyword)
+        );
+        
+        if (isModifyingQuery && selectedTable && onTableDataRefresh) {
+          // Trigger table data refresh to show immediate changes
+          onTableDataRefresh(selectedTable);
+        }
+
+        // If it's a CREATE/DROP table query, we should refresh the tables list too
+        // For now, this will be handled by the parent component's regular refresh mechanism
 
         // Step 3: Send results back to AI for analysis
         setMessages(prev => [...prev, {
@@ -594,6 +646,25 @@ Example format: SELECT COUNT(*) FROM table_name WHERE condition = 'value';`;
 
             const { sqliteManager } = await import('@/lib/sqlite');
             const queryResults = await sqliteManager.executeQuery(databaseId, sqlQuery!);
+
+            // Save database changes to IndexedDB for persistence
+            const { indexedDBManager } = await import('@/lib/indexeddb');
+            const dbData = sqliteManager.exportDatabase(databaseId);
+            await indexedDBManager.saveDatabase(databaseId, databaseName, dbData);
+
+            // Check if this is a modifying query and refresh table data if needed
+            const modifyingKeywords = ['INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER'];
+            const isModifyingQuery = modifyingKeywords.some(keyword => 
+              sqlQuery!.toUpperCase().includes(keyword)
+            );
+            
+            if (isModifyingQuery && selectedTable && onTableDataRefresh) {
+              // Trigger table data refresh to show immediate changes
+              onTableDataRefresh(selectedTable);
+            }
+
+            // If it's a CREATE/DROP table query, we should refresh the tables list too
+            // For now, this will be handled by the parent component's regular refresh mechanism
 
             const finalMessage: Message = {
               id: (Date.now() + 1).toString(),

@@ -272,8 +272,10 @@ export const SQLPlayground = ({ databaseId, databaseName, onBackToDashboard }: S
                   selectedTable={selectedTable || undefined}
                   tableSchema={tableSchema}
                   databaseId={databaseId}
+                  databaseName={databaseName}
                   tables={tables}
                   recentQueries={[query].filter(Boolean)} // Pass current query as recent
+                  onTableDataRefresh={loadTableData} // Pass the table data refresh callback
                 />
               </ErrorBoundary>
             </div>
