@@ -14,17 +14,19 @@ type AuthUserWithOnboarded = AuthUser & {
 };
 
 export const authConfig: NextAuthConfig = {
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Enable debug in production temporarily
   adapter: PrismaAdapter(prisma),
-  trustHost: true, // Essential for Vercel deployment
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true, // This is key!
     }),
     Github({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true, // This is key!
     }),
     Credentials({
       name: "credentials",
@@ -76,30 +78,14 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      try {
-        // When a user signs in with OAuth, ensure onboarded is set to false
-        if (account?.provider && (account.provider === 'google' || account.provider === 'github')) {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
-          });
-          
-          if (!existingUser) {
-            // This is a new user, create them with onboarded: false
-            await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name,
-                image: user.image,
-                onboarded: false,
-              }
-            });
-          }
-        }
-        return true;
-      } catch (error) {
-        console.error("Error in signIn callback:", error);
-        return true; // Still allow sign in
-      }
+      console.log('SignIn callback:', { 
+        userEmail: user.email, 
+        provider: account?.provider,
+        userId: user.id
+      });
+      
+      // Always allow sign in - let PrismaAdapter handle user creation
+      return true;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token.sub) {
@@ -172,6 +158,22 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
     newUser: "/onboarding",
     error: "/login" // Redirect errors to login page
+  },
+  events: {
+    async createUser({ user }) {
+      console.log('CreateUser event:', { userEmail: user.email, userId: user.id });
+      
+      // Set onboarded to false for new users
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { onboarded: false }
+        });
+        console.log('Set new user onboarded to false');
+      } catch (error) {
+        console.error('Error in createUser event:', error);
+      }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
