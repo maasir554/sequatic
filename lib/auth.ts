@@ -6,12 +6,6 @@ import Google from "next-auth/providers/google";
 import Github from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import type { User } from "@prisma/client";
-
-// Extended user type that includes onboarded field
-type ExtendedUser = User & {
-  onboarded: boolean;
-};
 
 // Type for user data in auth callbacks
 type AuthUserWithOnboarded = AuthUser & {
@@ -99,59 +93,10 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      try {
-        // Always allow sign in and handle account linking
-        if (account && user.email) {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            include: { accounts: true }
-          });
-          
-          if (existingUser) {
-            // Check if this provider account is already linked
-            const existingAccount = existingUser.accounts.find(
-              acc => acc.provider === account.provider && acc.providerAccountId === account.providerAccountId
-            );
-            
-            if (!existingAccount) {
-              // Link the account to the existing user
-              await prisma.account.create({
-                data: {
-                  userId: existingUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  refresh_token: account.refresh_token,
-                  access_token: account.access_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token,
-                  session_state: account.session_state as string,
-                }
-              });
-              console.log(`Linked ${account.provider} account to existing user ${existingUser.email}`);
-            }
-          } else {
-            // Create new user if doesn't exist
-            await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name,
-                image: user.image,
-                onboarded: false,
-              }
-            });
-            console.log(`Created new user for ${user.email}`);
-          }
-        }
-        return true;
-      } catch (error) {
-        console.error("Error during sign in:", error);
-        // Still allow sign in, let NextAuth handle it
-        return true;
-      }
+    async signIn() {
+      // Let NextAuth's adapter handle user creation automatically
+      // We don't need to manually create users here
+      return true;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token.sub) {
@@ -163,7 +108,7 @@ export const authConfig: NextAuthConfig = {
     },
     async jwt({ token, user, trigger, session }: { token: JWT; user: AuthUser | null; trigger?: string; session?: Session }) {
       if (user) {
-        // Set token properties from user data
+        // Set initial token properties from user data
         const extendedUser = user as AuthUserWithOnboarded;
         token.onboarded = extendedUser.onboarded || false;
         token.username = extendedUser.username || null;
@@ -173,8 +118,9 @@ export const authConfig: NextAuthConfig = {
       if (token.sub) {
         try {
           const freshUser = await prisma.user.findUnique({
-            where: { id: token.sub }
-          }) as ExtendedUser | null;
+            where: { id: token.sub },
+            select: { onboarded: true, username: true }
+          });
           
           if (freshUser) {
             token.username = freshUser.username;
@@ -189,8 +135,9 @@ export const authConfig: NextAuthConfig = {
       if (trigger === "update" && session?.user && token.sub) {
         try {
           const freshUser = await prisma.user.findUnique({
-            where: { id: token.sub }
-          }) as ExtendedUser | null;
+            where: { id: token.sub },
+            select: { onboarded: true, username: true }
+          });
           
           if (freshUser) {
             token.username = freshUser.username;

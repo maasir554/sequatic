@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.includes('.') ||
-    pathname.startsWith('/api/auth') // Skip all auth API routes
+    pathname.startsWith('/api/') // Skip ALL API routes
   ) {
     return NextResponse.next();
   }
@@ -27,7 +27,6 @@ export async function middleware(request: NextRequest) {
     token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
-      // Let NextAuth handle cookie name automatically
     });
   } catch (error) {
     console.error('Error getting token in middleware:', error);
@@ -41,7 +40,6 @@ export async function middleware(request: NextRequest) {
       hasToken: !!token,
       userEmail: token?.email,
       onboarded: token?.onboarded,
-      userAgent: request.headers.get('user-agent')?.slice(0, 50)
     });
   }
   
@@ -52,12 +50,12 @@ export async function middleware(request: NextRequest) {
   const isOnboarded = token?.onboarded === true;
   
   // Allow public API routes (except auth routes which are handled above)
-  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next();
   }
   
   // If the user is authenticated and trying to access auth routes (login/signup),
-  // redirect them to the appropriate page
+  // redirect them based on onboarding status
   if (isAuthenticated && authRoutes.includes(pathname)) {
     if (isOnboarded) {
       return NextResponse.redirect(new URL('/', request.url));
@@ -68,13 +66,13 @@ export async function middleware(request: NextRequest) {
   
   // If the user is not authenticated and trying to access a protected route,
   // redirect them to the login page
-  if (!isAuthenticated && !publicRoutes.includes(pathname) && !pathname.startsWith('/api')) {
+  if (!isAuthenticated && !publicRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
   
   // If the user is authenticated but not onboarded and not accessing the onboarding page,
-  // redirect them to the onboarding page
-  if (isAuthenticated && !isOnboarded && pathname !== '/onboarding' && !pathname.startsWith('/api')) {
+  // redirect them to the onboarding page (THIS IS KEY!)
+  if (isAuthenticated && !isOnboarded && pathname !== '/onboarding') {
     return NextResponse.redirect(new URL('/onboarding', request.url));
   }
   
