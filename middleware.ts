@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { auth } from '@/lib/auth'
 
-export async function middleware(request: NextRequest) {
+export default auth(async function middleware(request) {
   const { pathname } = request.nextUrl
   
   // Skip all API routes and static files
@@ -21,19 +20,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check authentication for protected routes
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET 
-  })
+  const session = request.auth
 
-  if (!token) {
+  if (!session) {
     // Not authenticated - redirect to login
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Authenticated - allow access
   return NextResponse.next()
-}
+})
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
