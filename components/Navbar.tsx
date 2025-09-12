@@ -137,7 +137,7 @@ export const Navbar = () => {
     <>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-30 transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 right-0 z-100 transition-all duration-300 ease-in-out",
           (scrolled || isMenuOpen)
             ? "bg-white/80 backdrop-blur-xl shadow-sm"
             : "bg-transparent",
@@ -279,7 +279,7 @@ export const Navbar = () => {
         animate={isMenuOpen ? "open" : "closed"}
         variants={mobileMenuVariants}
         className={cn(
-          "fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg md:hidden"
+          "fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg md:hidden"
         )}
       >
         <motion.div
