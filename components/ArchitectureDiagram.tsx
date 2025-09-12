@@ -14,12 +14,12 @@ const Circle = forwardRef<
       <div
         ref={ref}
         className={cn(
-          "z-10 flex flex-col gap-2 w-[100px] lg:w-auto aspect-square items-center justify-center rounded-full border-2 border-blue-300 bg-white p-3 shadow-[0_0_20px_-12px_#155dfc]",
+          "z-10 flex flex-col gap-2 w-[70px] p-1 md:w-[100px] lg:w-auto aspect-square items-center justify-center rounded-full border-2 nd:border-blue-300 bg-white shadow-[0_0_20px_-12px_#155dfc]",
           className,
         )}
       >
         {children}
-        {title && <p className="w-24 text-xs md:text-sm text-gray-600">{title}</p>}
+        {title && <p className="w-24 text-[10px] sm:text-xs md:text-sm text-gray-600">{title}</p>}
       </div>
     </div>
   )

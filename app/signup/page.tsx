@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { WavyBackground } from '@/components/ui/wavy-background';
-import { Github } from 'lucide-react';
+// import { Github } from 'lucide-react';
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function SignupPage() {
         <div className="space-y-6">
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-6">
-              Sign up with your Google or GitHub account to get started with verified credentials
+              Sign up with your Google account to get started with verified credentials
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function SignupPage() {
               </svg>
               {isLoading ? 'Connecting...' : 'Continue with Google'}
             </Button>
-
+            {/* 
             <Button
               type="button"
               onClick={() => handleOAuthSignIn('github')}
@@ -72,7 +72,7 @@ export default function SignupPage() {
             >
               <Github className="h-5 w-5 mr-3" />
               {isLoading ? 'Connecting...' : 'Continue with GitHub'}
-            </Button>
+            </Button> */}
           </div>
 
           <div className="text-center">

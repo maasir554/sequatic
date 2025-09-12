@@ -325,7 +325,7 @@ const SkeletonFive = () => {
 const items = [
   {
     title: (
-      <h3 className="text-yellow-600 font-hero-heading text-3xl font-extrabold">
+      <h3 className="text-yellow-600 font-playfair text-3xl font-extrabold">
         AI-Powered Queries
       </h3>
     ),
@@ -340,7 +340,7 @@ const items = [
   },
   {
     title: (
-      <h3 className="text-blue-600 font-hero-heading text-3xl font-extrabold">
+      <h3 className="text-blue-600 font-playfair text-3xl font-extrabold">
         {`Create & Update Tables`}
       </h3>
     ),
@@ -355,7 +355,7 @@ const items = [
   },
   {
     title: (
-      <h3 className="text-blue-600 font-hero-heading text-3xl font-extrabold">
+      <h3 className="text-blue-600 font-playfair text-3xl font-extrabold">
         Agentic Queries
       </h3>
     ),
@@ -371,7 +371,7 @@ const items = [
   },
   {
     title: (
-      <h3 className="text-yellow-600 font-hero-heading text-3xl font-extrabold">
+      <h3 className="text-yellow-600 font-playfair text-3xl font-extrabold">
         Interactive Data Tables
       </h3>
     ),
@@ -386,7 +386,7 @@ const items = [
   },
   {
     title: (
-      <h3 className="text-blue-600 font-hero-heading text-3xl font-extrabold">
+      <h3 className="text-blue-600 font-playfair text-3xl font-extrabold">
         Cloud Sync & Backup
       </h3>
     ),

@@ -233,6 +233,9 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
   const handleEditorMount = async (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
     
+    // Import Monaco first to avoid async issues in keybindings
+    const monacoModule = await import('monaco-editor');
+    
     // Try multiple approaches to ensure the keyboard shortcut works
     
     // Approach 1: Using addAction
@@ -240,7 +243,7 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
       id: 'execute-query',
       label: 'Execute Query',
       keybindings: [
-        (await import('monaco-editor')).KeyMod.CtrlCmd | (await import('monaco-editor')).KeyCode.Enter
+        monacoModule.KeyMod.CtrlCmd | monacoModule.KeyCode.Enter
       ],
       run: () => {
         executeQueryFromShortcut(editor);
@@ -248,8 +251,7 @@ export const useSQLPlayground = (databaseId: string, databaseName: string) => {
     });
     
     // Approach 2: Using addCommand as backup
-    const monaco = await import('monaco-editor');
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+    editor.addCommand(monacoModule.KeyMod.CtrlCmd | monacoModule.KeyCode.Enter, () => {
       executeQueryFromShortcut(editor);
     });
     

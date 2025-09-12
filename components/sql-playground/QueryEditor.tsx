@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Kbd } from '@/components/ui/kbd';
-import { Play, Loader2, Code, Palette, Zap, Command, ChevronDown, ChevronUp, Minimize2, Maximize2 } from 'lucide-react';
+import { Play, Loader2, Code, Palette, Zap, Command, ChevronDown, Minimize2, Maximize2, X } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Editor from '@monaco-editor/react';
 import githubDark from 'monaco-themes/themes/GitHub Dark.json';
@@ -181,38 +181,42 @@ export const QueryEditor = ({
           <CollapsibleTrigger asChild>
             <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 px-4 sm:px-6 py-1 sm:py-2 cursor-pointer hover:bg-gradient-to-r hover:from-slate-100 hover:to-blue-50/50 transition-all duration-200 border-b border-slate-200/50">
               <div className="flex flex-col lg:flex-row gap-3 lg:gap-2 lg:items-center lg:justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between w-full min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="p-1 rounded-sm bg-gradient-to-br from-blue-500/10 to-slate-500/10 border border-blue-500/20">
                       <BsFillTerminalFill className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
-                    {isEditorCollapsed ? (
-                      <ChevronDown className="w-4 h-4 text-slate-600" />
-                    ) : (
-                      <ChevronUp className="w-4 h-4 text-slate-600" />
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-col justify-start gap-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-sm font-black text-black tracking-tight whitespace-nowrap">SQL Query Console</h2>
-                      {isEditorCollapsed && query.trim() && (
-                        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
-                          <Code className="w-3 h-3" />
-                          <span className="truncate max-w-[200px]">{query.split('\n')[0]}...</span>
-                        </div>
-                      )}
-                    </div>
                     
-                    {!isEditorCollapsed && (
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                        {lastExecutionTime && (
-                          <div className="flex items-center gap-1 text-xs text-green-600">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span>Last executed {lastExecutionTime.toLocaleTimeString()}</span>
+                    <div className="flex flex-col justify-start gap-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-sm font-black text-black tracking-tight whitespace-nowrap">SQL Query Console</h2>
+                        {isEditorCollapsed && query.trim() && (
+                          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
+                            <Code className="w-3 h-3" />
+                            <span className="truncate max-w-[200px]">{query.split('\n')[0]}...</span>
                           </div>
                         )}
                       </div>
+                      
+                      {!isEditorCollapsed && (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          {lastExecutionTime && (
+                            <div className="flex items-center gap-1 text-xs text-green-600">
+                              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                              <span>Last executed {lastExecutionTime.toLocaleTimeString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Dropdown Indicator - Always on the right */}
+                  <div className="flex-shrink-0 ml-3 p-1 rounded-md hover:bg-slate-100/60 transition-colors duration-200">
+                    {isEditorCollapsed ? (
+                      <ChevronDown className="w-4 h-4 text-slate-600 hover:text-slate-800 transition-colors duration-200" />
+                    ) : (
+                      <X className="w-4 h-4 text-slate-600 hover:text-red-600 transition-all duration-200 transform hover:scale-110" />
                     )}
                   </div>
                 </div>
@@ -221,7 +225,7 @@ export const QueryEditor = ({
           </CollapsibleTrigger>
 
           {/* Collapsible Editor Content */}
-          <CollapsibleContent className="overflow-visible">
+          <CollapsibleContent>
             <div className="relative py-2 px-2">
                {/* Controls - Always visible */}
                 <div className="flex items-center justify-between gap-2 sm:gap-3 flex-shrink-0">

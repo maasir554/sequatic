@@ -6,7 +6,7 @@ export default async function Home() {
   const session = await auth();
   
   // If user is authenticated and onboarded, show app interface
-  if (session?.user?.onboarded) {
+  if (session?.user) {
     return <AppInterface />;
   }
   

@@ -36,14 +36,14 @@ export const LandingPage = () => {
           {/* Left Column - Text Content */}
           <div className="md:space-y-8">
             <div className="md:space-y-6 mb-10">
-              <h1 className="font-hero-heading leading-relaxed text-gray-900 text-balance mb-6 md:mb-8 lg:mb-10">
-                <span className="text-3xl lg:text-4xl font-black italic text-blue-600">
+              <h1 className="font-playfair leading-relaxed text-gray-900 text-balance mb-6 md:mb-8 lg:mb-10">
+                <span className="text-3xl lg:text-4xl italic font-bold text-blue-600">
                   Query your data with 
                 </span>
                 <br/>
                 <span className="text-yellow-600 text-5xl lg:text-7xl font-extralight">Natural Language</span>
               </h1>
-              <p className="text-sm md:text-md lg:text-lg text-gray-600 leading-relaxed text-pretty font-hero-para">
+              <p className="text-sm md:text-md lg:text-lg text-gray-600 leading-relaxed text-pretty font-dmsans">
                 Experience the future of SQL with {`Sequatic's`} in-browser playground. <br/>Create tables, run queries, and let AI
                 transform your natural language into powerful SQL commands.
               </p>
@@ -51,14 +51,15 @@ export const LandingPage = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 items-start">
-                <RainbowButton 
-                size={"lg"}
-                variant={"hero"}
-                className="cursor-pointer font-semibold text-md px-8 py-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:bg-blue-500 transition-colors flex items-center justify-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                      Start Querying Now
-                </RainbowButton>
-              
+                <Link href={'/login'}>
+                  <RainbowButton 
+                  size={"lg"}
+                  variant={"hero"}
+                  className="cursor-pointer font-semibold text-md px-8 py-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:bg-blue-500 transition-colors flex items-center justify-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                        Start Querying Now
+                  </RainbowButton>
+                </Link>
               <a href="#features" className="cursor-pointer bg-transparent rounded-lg text-blue-500 hover:bg-gray-50 font-semibold text-lg px-6 py-2 flex gap-2 justify-center items-center ">
                 <ArrowDown className="w-5 h-5 mr-2" />
                 Learn More
@@ -176,7 +177,7 @@ export const LandingPage = () => {
       <section id="features" className="py-20 lg:py-32 bg-gray-50/70">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <TextGenerateEffect words={"A Playground for Your Ideas"} className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600 mb-4 sm:mb-6 md:mb-12"/>
+            <TextGenerateEffect words={"A Playground for Your Ideas"} className="text-4xl md:text-5xl lg:text-7xl font-playfair font-black text-blue-600 mb-4 sm:mb-6 md:mb-12"/>
             <p className="mt-4 text-sm lg:text-lg text-gray-600 max-w-3xl mx-auto text-balance">
               Sequatic is more than just a SQL editor.<br/> {`It's`} an interactive environment
               designed to bring your data-driven ideas to life.
@@ -190,8 +191,8 @@ export const LandingPage = () => {
       <section id="architecture" className="py-20 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            {/* <h2 className="text-3xl md:text-4xl lg:text-5xl font-hero-heading font-black text-blue-600"> */}
-             <TextGenerateEffect words={"How It Works"} className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600"/>
+            {/* <h2 className="text-3xl md:text-4xl lg:text-5xl font-playfair font-black text-blue-600"> */}
+             <TextGenerateEffect words={"How It Works"} className="text-4xl md:text-5xl lg:text-7xl font-playfair font-black text-blue-600"/>
             {/* </h2> */}
             <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto text-balance">
               A glimpse into the architecture that powers Sequatic, enabling
@@ -213,7 +214,7 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <TextGenerateEffect
             words="What are you waiting for?"
-            className="text-4xl md:text-5xl lg:text-7xl font-hero-heading font-black text-blue-600 mb-6"
+            className="text-4xl md:text-5xl lg:text-7xl font-playfair font-black text-blue-600 mb-6"
           />
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto text-balance mb-12">
             Start using Sequatic now. Experience the future of SQL and unlock
@@ -267,7 +268,7 @@ const Footer = () => {
           />
           <h2
             aria-hidden="true"
-            className="italic pointer-events-none text-center text-8xl md:text-9xl lg:text-[180px] font-black select-none font-hero-heading bg-gradient-to-b from-white to-white/10 bg-clip-text text-transparent px-10 py-10"
+            className="italic pointer-events-none text-center text-6xl sm:text-8xl md:text-9xl lg:text-[180px] font-black select-none font-playfair bg-gradient-to-b from-white to-white/10 bg-clip-text text-transparent px-10 py-10"
           >
             Sequatic
           </h2>

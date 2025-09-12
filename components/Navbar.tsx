@@ -127,7 +127,7 @@ export const Navbar = () => {
     { href: "/#features", label: "Features" },
     { href: "/#architecture", label: "Architecture" },
     {
-      href: "https://github.com/M-AASIR/sequatic",
+      href: "https://github.com/maasir554/sequatic",
       label: "GitHub",
       target: "_blank",
     },
@@ -165,7 +165,7 @@ export const Navbar = () => {
             />
             <span
               className={cn(
-                "font-black italic font-hero-heading text-blue-600 transition-all duration-300 ease-in-out",
+                "font-black italic font-playfair text-blue-600 transition-all duration-300 ease-in-out",
                 scrolled ? "text-lg" : "text-xl"
               )}
             >
@@ -208,14 +208,14 @@ export const Navbar = () => {
                     >
                       <User className="w-4 h-4" />
                       <span className="text-sm font-medium">
-                        {session.user.username || session.user.name || 'User'}
+                        {session.user.name || 'User'}
                       </span>
                       <ChevronDown className="w-3 h-3" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <div className="px-2 py-1.5 text-sm text-gray-600">
-                      <div className="font-medium text-gray-900">{session.user.username || session.user.name || 'User'}</div>
+                      <div className="font-medium text-gray-900">{session.user.name || 'User'}</div>
                       <div className="text-xs text-gray-500">Signed in</div>
                     </div>
                     <DropdownMenuSeparator />
@@ -279,7 +279,7 @@ export const Navbar = () => {
         animate={isMenuOpen ? "open" : "closed"}
         variants={mobileMenuVariants}
         className={cn(
-          "fixed inset-0 z-20 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg md:hidden"
+          "fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/95 backdrop-blur-lg md:hidden"
         )}
       >
         <motion.div
@@ -311,7 +311,7 @@ export const Navbar = () => {
               <div className="flex items-center gap-2 text-gray-700">
                 <User className="w-5 h-5" />
                 <span className="text-lg font-medium">
-                  {session.user.username || session.user.name || 'User'}
+                  {session.user.name || 'User'}
                 </span>
               </div>
               <Link href="/" className="w-full">

@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, CheckCircle, Database, Clock, TrendingUp, BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertCircle, CheckCircle, Database, Clock, TrendingUp, BarChart3, ChevronDown, X } from 'lucide-react';
 import { QueryResult } from '@/lib/sqlite';
 import { useEffect, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -219,17 +219,16 @@ export const QueryResultsDisplay = ({ results, error }: QueryResultsDisplayProps
   };
 
   return (
-    <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)} className="h-full flex flex-col">
+    <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
       {/* Sticky Header */}
       <CollapsibleTrigger asChild>
-        <div className="sticky top-0 z-10 bg-white border-b border-slate-200/50 px-6 py-4 cursor-pointer hover:bg-slate-50/50 transition-colors duration-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="bg-gradient-to-r from-slate-50 to-green-50/30 border-b border-slate-200/50 px-6 py-2 cursor-pointer hover:bg-gradient-to-r hover:from-slate-100 hover:to-green-50/50 transition-all duration-200">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-500/10 to-blue-500/10 border border-green-500/20">
-                {/* <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-blue-500 rounded-sm"></div> */}
                 <BsInfoCircleFill className='w-6 h-6 text-green-600' />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Query Results</h3>
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">Query Results</h3>
               {results.length > 0 && (
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
@@ -238,17 +237,19 @@ export const QueryResultsDisplay = ({ results, error }: QueryResultsDisplayProps
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            
+            {/* Dropdown Indicator - Always on the right */}
+            <div className="flex items-center gap-2 flex-shrink-0 ml-3">
               {results.length > 0 && (
                 <div className="text-xs text-slate-500">
                   {isCollapsed ? 'Click to expand' : 'Click to collapse'}
                 </div>
               )}
-              <div className="p-1 rounded-full hover:bg-slate-200/50 transition-colors duration-200">
+              <div className="p-1 rounded-md hover:bg-slate-100/60 transition-colors duration-200">
                 {isCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-slate-600" />
+                  <ChevronDown className="w-4 h-4 text-slate-600 hover:text-slate-800 transition-colors duration-200" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-600" />
+                  <X className="w-4 h-4 text-slate-600 hover:text-red-600 transition-all duration-200 transform hover:scale-110" />
                 )}
               </div>
             </div>
@@ -256,8 +257,8 @@ export const QueryResultsDisplay = ({ results, error }: QueryResultsDisplayProps
         </div>
       </CollapsibleTrigger>
 
-      {/* Collapsible Content - Now properly sized for parent scrolling */}
-      <CollapsibleContent className="flex-1 min-h-0 overflow-visible">
+      {/* Collapsible Content */}
+      <CollapsibleContent>
         <div className="p-6">
           {renderContent()}
         </div>

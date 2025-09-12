@@ -17,11 +17,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (status === 'unauthenticated') {
       router.push('/login');
     }
-    
-    // If the user is authenticated but not onboarded, redirect to onboarding
-    if (status === 'authenticated' && session?.user && !session.user.onboarded) {
-      router.push('/onboarding');
-    }
   }, [session, status, router]);
 
   // Show loading state while checking authentication
@@ -34,7 +29,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // If authenticated and onboarded, render children
-  if (status === 'authenticated' && session?.user?.onboarded) {
+  if (status === 'authenticated') {
     return <>{children}</>;
   }
 
