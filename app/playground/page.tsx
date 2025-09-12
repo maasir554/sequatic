@@ -22,11 +22,11 @@ function PlaygroundContent() {
     const initializePlayground = async () => {
       try {
         // Check if user is authenticated
-        if (status === 'loading') return;
-        if (status === 'unauthenticated') {
-          router.push('/login');
-          return;
-        }
+        // if (status === 'loading') return;
+        // if (status === 'unauthenticated') {
+        //   router.push('/login');
+        //   return;
+        // }
 
         // Get database ID from URL params
         const databaseId = searchParams.get('db');
