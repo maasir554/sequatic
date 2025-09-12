@@ -1,3 +1,4 @@
+// Minimal Prisma schema for Google Auth only
 generator client {
   provider = "prisma-client-js"
 }
