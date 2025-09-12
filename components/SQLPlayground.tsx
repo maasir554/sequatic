@@ -72,7 +72,7 @@ export const SQLPlayground = ({ databaseId, databaseName, onBackToDashboard }: S
     handleDeleteRow,
   } = useSQLPlayground(databaseId, databaseName);
 
-  const userDisplayName = session?.user?.username || session?.user?.name || undefined;
+  const userDisplayName = session?.user?.name || "User";
 
   const handleLoadTableDataForView = () => {
     if (selectedTable) {
